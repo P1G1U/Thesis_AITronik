@@ -1,5 +1,6 @@
 import tensorflow as tf
-from tensorflow.keras import layers, models, backend
+from tensorflow.keras import layers, models
+from keras import backend
 from data_mgmt import DAO
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_absolute_error, mean_squared_error
@@ -17,6 +18,8 @@ class NN_Model:
 
     def model_define(self, drop_rate):
 
+        backend.clear_session()
+
         model = models.Sequential()
 
         model.add(layers.Conv2D(
@@ -32,7 +35,7 @@ class NN_Model:
             256, kernel_size=(5,1), padding="same",
             name="conv_3" ))
         model.add(layers.MaxPooling2D(
-            (2,1), strides=4, padding="same",
+            (2,1), strides=2, padding="same",
             name="pool_2" ))
 
         model.add(layers.Flatten())
@@ -50,16 +53,13 @@ class NN_Model:
         self.data = DAO(filename)
         self.data.read()
         self.data.divide_data(0.25)
+        
+        self.data_tensor=DAO()
 
-        #brutto ma funziona
-        self.data_tensor=DAO(filename)
-        self.data_tensor.read()
-        self.data_tensor.divide_data(0.25)
-
-        self.data_tensor.TR_features=tf.reshape(self.data_tensor.TR_features,[-1,720,1,1])
-        self.data_tensor.TS_features=tf.reshape(self.data_tensor.TS_features,[-1,720,1,1])
-        self.data_tensor.TR_targets=tf.reshape(self.data_tensor.TR_targets,[-1,3])
-        self.data_tensor.TS_targets=tf.reshape(self.data_tensor.TS_targets,[-1,3])
+        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,1,1])
+        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,1,1])
+        self.data_tensor.TR_targets=tf.reshape(self.data.TR_targets,[-1,3])
+        self.data_tensor.TS_targets=tf.reshape(self.data.TS_targets,[-1,3])
 
     def model_compile(self, optimizer, loss, metrics):
         self.model_cnn.compile(optimizer=optimizer,

@@ -14,7 +14,7 @@ class DAO:
 
     add_time = False
 
-    def __init__(self, filename, time=False):
+    def __init__(self, filename="", time=False):
         self.filename = filename
         self.add_time = time
 
@@ -22,6 +22,8 @@ class DAO:
         
         with open("data/"+self.filename, "r") as data:
             laser_db = pd.read_csv(data, delimiter=";").copy()
+
+        fill_value = 15
 
         laser_list= pd.DataFrame()
         target_list= pd.DataFrame()
@@ -34,7 +36,7 @@ class DAO:
         for i in laser_db.values:
             if i[0] == inst:
                 if i[3] == np.inf:
-                    laser_inst[i[2]]=0
+                    laser_inst[i[2]]=fill_value
                 else:
                     laser_inst[i[2]]=i[3]                
                 #laser_angle.append(i[2])
@@ -63,7 +65,7 @@ class DAO:
                 #laser_range.append(i[3]) 
                 
                 if i[3] == np.inf:
-                    laser_inst[i[2]]=0
+                    laser_inst[i[2]]=fill_value
                 else:
                     laser_inst[i[2]]=i[3]     
 

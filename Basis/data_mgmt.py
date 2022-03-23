@@ -23,7 +23,7 @@ class DAO:
         with open("data/"+self.filename, "r") as data:
             laser_db = pd.read_csv(data, delimiter=";").copy()
 
-        fill_value = 15
+        fill_value = 20
 
         laser_list= pd.DataFrame()
         target_list= pd.DataFrame()

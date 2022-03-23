@@ -24,14 +24,14 @@ if gpus:
 
 
 model= m.NN_Model()
-model.get_data("laser_log/laser_log.csv")
+model.get_data("laser_log/laser_log2203.csv")
 
 beta=float(sys.argv[1])
 drop=float(sys.argv[2])
-epochs=12
+epochs=100
 batch_size=16
 
-group_epochs=2
+group_epochs=1
 
 results=[]
 
@@ -46,4 +46,4 @@ for step in range(epochs//group_epochs):
 with open(sys.argv[3], 'w') as f:
     #f.write("beta;dropout;epochs;pos_mse;pos_mae;rot_mse;rot_mae\n")
     for item in results:
-        f.write("{};{};{};{};{};{};{}\n".format(item["beta"],item["drop-out"],item["epochs"],item["position squared error"],item["position absolute error"],item["rotation squared error"],item["rotation absolute error"]))
+        f.write("{};{};{};{};{}\n".format(item["beta"],item["drop-out"],item["epochs"],item["position absolute error"],item["rotation absolute error"]))

@@ -24,7 +24,7 @@ if gpus:
 
 
 model= m.NN_Model()
-model.model_define(0.5)
+model.model_define(0.0)
 
 model.model_cnn.load_weights("models/cp-epoch-train.ckpt")
 

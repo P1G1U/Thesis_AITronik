@@ -1,9 +1,9 @@
 #!/bin/bash
-MAX_beta=1
-MAX_drop=1
+MAX_beta=3
+MAX_drop=2
 
-declare -a beta=("0.6")
-declare -a drop=("0.5")
+declare -a beta=("0.2" "0.4" "0.6")
+declare -a drop=("0.8" "0.9")
 
 for (( i=0; i<$MAX_beta; i++))
 do

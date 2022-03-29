@@ -28,30 +28,41 @@ class DAO:
         laser_list= pd.DataFrame()
         target_list= pd.DataFrame()
         inst = 1 #il counter delle istanze inizia da 1
+        new = True
         #laser_angle=[]
         #laser_range=[]
         laser_inst=pd.Series(dtype="float32")
         target_inst=pd.Series(dtype="float32")
 
         for i in laser_db.values:
-            if i[0] == inst:
-                if i[3] == np.inf:
-                    laser_inst[i[2]]=fill_value
+            if not new:
+                if i[0] == inst:
+                    if i[3] == np.inf:
+                        #laser_inst["range{}".format(laser_id)]=fill_value
+                        #laser_inst["angle{}".format(laser_id)]=i[2]
+                        laser_inst[i[2]]=fill_value
+                    else:
+                        #laser_inst["range{}".format(laser_id)]=i[3]
+                        #laser_inst["angle{}".format(laser_id)]=i[2]
+                        laser_inst[i[2]]=i[3]                
+                    #laser_angle.append(i[2])
+                    #laser_range.append(i[3])
                 else:
-                    laser_inst[i[2]]=i[3]                
-                #laser_angle.append(i[2])
-                #laser_range.append(i[3])
-            else:
-                if self.add_time:
-                    laser_inst["time"] = i[1]
-                
-                #laser_pd_series= pd.Series([laser_angle,laser_range], name=inst)
-                #laser_list= pd.concat([laser_list,laser_pd_series], axis=1) 
+                    if self.add_time:
+                        laser_inst["time"] = i[1]
+                    
+                    #laser_pd_series= pd.Series([laser_angle,laser_range], name=inst)
+                    #laser_list= pd.concat([laser_list,laser_pd_series], axis=1) 
 
-                laser_inst.name=inst
+                    laser_inst.name=inst
 
-                laser_list=pd.concat([laser_list, laser_inst.copy()],axis=1)
+                    laser_list=pd.concat([laser_list, laser_inst.copy()],axis=1) 
 
+                    inst+=1
+
+                    new = True
+                    
+            if new:
                 target_inst["pos_x"] = i[4]
                 target_inst["pos_y"] = i[5]
                 target_inst["pos_yaw"] = i[6]
@@ -63,13 +74,31 @@ class DAO:
 
                 #laser_angle.append(i[2])
                 #laser_range.append(i[3]) 
-                
+
+                laser_id = 0
+
                 if i[3] == np.inf:
+                    #laser_inst["range{}".format(laser_id)]=fill_value
+                    #laser_inst["angle{}".format(laser_id)]=i[2]
                     laser_inst[i[2]]=fill_value
                 else:
-                    laser_inst[i[2]]=i[3]     
+                    #laser_inst["range{}".format(laser_id)]=i[3]
+                    #laser_inst["angle{}".format(laser_id)]=i[2]
+                    laser_inst[i[2]]=i[3]   
+            
+                new = False
+                
+            laser_id+=1
 
-                inst+=1
+        if self.add_time:
+            laser_inst["time"] = i[1]
+
+        #laser_pd_series= pd.Series([laser_angle,laser_range], name=inst)
+        #laser_list= pd.concat([laser_list,laser_pd_series], axis=1) 
+
+        laser_inst.name=inst
+
+        laser_list=pd.concat([laser_list, laser_inst.copy()],axis=1) 
 
         self.features = laser_list.T
         self.targets = target_list.T

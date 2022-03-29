@@ -98,5 +98,5 @@ class NN_Model:
         self.beta_loss=value
 
     def pos_loss(self,y_actual, y_pred):
-        loss_value = (1-self.beta_loss)*(backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2)))+(self.beta_loss*(backend.sqrt(backend.pow((y_actual[:,2]-y_pred[:,2]),2))))
+        loss_value = (1-self.beta_loss)*(backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2)))+(self.beta_loss*(backend.abs(y_actual[:,2]-y_pred[:,2])))
         return loss_value

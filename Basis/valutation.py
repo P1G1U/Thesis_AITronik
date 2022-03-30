@@ -36,7 +36,7 @@ def get_data(filename):
 
     data_tensor_test=m.DAO()
 
-    data_tensor_test.features=tf.reshape(data_test.features,[-1,720,1,1])
+    data_tensor_test.features=tf.reshape(data_test.features,[-1,720,2,1])
     data_tensor_test.targets=tf.reshape(data_test.targets,[-1,3])
 
     return data_test, data_tensor_test

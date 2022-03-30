@@ -23,7 +23,7 @@ class NN_Model:
         model = models.Sequential()
 
         model.add(layers.Conv2D(
-            32, (11,1), padding="same", input_shape=(720,1,1),
+            32, (11,1), padding="same", input_shape=(720,2,1),
             name="conv_1" ))
         model.add(layers.Conv2D(
             64, kernel_size=(5,1), padding="same",
@@ -43,6 +43,7 @@ class NN_Model:
         model.add(layers.Dropout(drop_rate))
         model.add(layers.Dense(1024, activation="relu", name="dense_1"))
 
+        model.add(layers.Dropout(drop_rate))
         model.add(layers.Dense(128, activation="relu", name="dense_2"))
 
         model.add(layers.Dense(3, name="dense_3"))
@@ -56,8 +57,8 @@ class NN_Model:
         
         self.data_tensor=DAO()
 
-        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,1,1])
-        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,1,1])
+        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,2,1])
+        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,2,1])
         self.data_tensor.TR_targets=tf.reshape(self.data.TR_targets,[-1,3])
         self.data_tensor.TS_targets=tf.reshape(self.data.TS_targets,[-1,3])
 

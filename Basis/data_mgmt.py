@@ -64,7 +64,7 @@ class DAO:
             if new:
                 target_inst["pos_x"] = i[4]
                 target_inst["pos_y"] = i[5]
-                #target_inst["pos_yaw"] = i[6]
+                target_inst["pos_yaw"] = i[6]
                 target_inst.name= inst
                 target_list=pd.concat([target_list,target_inst],axis=1)
 

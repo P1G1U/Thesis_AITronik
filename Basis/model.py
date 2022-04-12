@@ -23,7 +23,7 @@ class NN_Model:
         model = models.Sequential()
 
         model.add(layers.Conv2D(
-            32, (11,1), padding="same", input_shape=(720,2,1),
+            32, (11,1), padding="same", input_shape=(720,1,1),
             name="conv_1" ))
         model.add(layers.Conv2D(
             64, kernel_size=(5,1), padding="same",
@@ -46,7 +46,8 @@ class NN_Model:
         model.add(layers.Dropout(drop_rate))
         model.add(layers.Dense(128, activation="relu", name="dense_2"))
 
-        model.add(layers.Dense(3, name="dense_3"))
+        #model.add(layers.Dense(3, name="dense_3"))
+        model.add(layers.Dense(2, name="dense_3"))
 
         self.model_cnn = model   
 
@@ -57,10 +58,12 @@ class NN_Model:
         
         self.data_tensor=DAO()
 
-        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,2,1])
-        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,2,1])
-        self.data_tensor.TR_targets=tf.reshape(self.data.TR_targets,[-1,3])
-        self.data_tensor.TS_targets=tf.reshape(self.data.TS_targets,[-1,3])
+        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,1,1])
+        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,1,1])
+        #self.data_tensor.TR_targets=tf.reshape(self.data.TR_targets,[-1,3])
+        #self.data_tensor.TS_targets=tf.reshape(self.data.TS_targets,[-1,3])
+        self.data_tensor.TR_targets=tf.reshape(self.data.TR_targets,[-1,2])
+        self.data_tensor.TS_targets=tf.reshape(self.data.TS_targets,[-1,2])
 
     def model_compile(self, optimizer, loss, metrics):
         self.model_cnn.compile(optimizer=optimizer,
@@ -69,9 +72,11 @@ class NN_Model:
     
     def model_run(self, epochs, batch_size=32, verbose=0):
         return self.model_cnn.fit(self.data_tensor.TR_features, 
-            self.data_tensor.TR_targets, 
+            self.data_tensor.TR_targets,
+            #tf.gather(self.data_tensor.TR_targets,[0,1]), 
             epochs=epochs, 
             validation_data=(self.data_tensor.TS_features, self.data_tensor.TS_targets),
+            #validation_data=(self.data_tensor.TS_features, tf.gather(self.data_tensor.TS_targets,[0,1])),
             verbose=verbose,
             batch_size=batch_size
             )
@@ -79,25 +84,28 @@ class NN_Model:
     def get_error(self, verbose=0):
         result = self.model_cnn.predict(self.data_tensor.TS_features)
         pos_test = result[:,0:2]
-        rot_test = result[:,2]
+        #rot_test = result[:,2]
 
         pos_real = np.array([self.data.TS_targets["pos_x"].to_list(),self.data.TS_targets["pos_y"].to_list()]).T
-        rot_real = (self.data.TS_targets["pos_yaw"]).to_numpy()
+        #rot_real = (self.data.TS_targets["pos_yaw"]).to_numpy()
 
         pos_mse = mean_squared_error(pos_real,pos_test)
-        rot_mse = mean_squared_error(rot_real,rot_test)
+        #rot_mse = mean_squared_error(rot_real,rot_test)
 
         pos_mae = mean_absolute_error(pos_real,pos_test)
-        rot_mae = mean_absolute_error(rot_real,rot_test)
+        #rot_mae = mean_absolute_error(rot_real,rot_test)
 
         if verbose==1:
-            print("position mean square error: {} -- rotation mean square error: {} -- position mean absolute error: {} -- rotation mean absolute error: {}".format(pos_mse,rot_mse,pos_mae,rot_mae))
+            #print("position mean square error: {} -- rotation mean square error: {} -- position mean absolute error: {} -- rotation mean absolute error: {}".format(pos_mse,rot_mse,pos_mae,rot_mae))
+            print("position mean square error: {} -- position mean absolute error: {} ".format(pos_mse,pos_mae))
 
-        return (pos_mse, rot_mse, pos_mae, rot_mae)
+        #return (pos_mse, rot_mse, pos_mae, rot_mae)
+        return (pos_mse, pos_mae)
 
     def set_beta(self, value):
         self.beta_loss=value
 
     def pos_loss(self,y_actual, y_pred):
-        loss_value = (1-self.beta_loss)*(backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2)))+(self.beta_loss*(backend.abs(y_actual[:,2]-y_pred[:,2])))
+        #loss_value = (1-self.beta_loss)*(backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2)))+(self.beta_loss*(backend.abs(y_actual[:,2]-y_pred[:,2])))
+        loss_value = backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2))
         return loss_value

@@ -12,6 +12,11 @@ class DAO:
     TR_targets = None
     TS_targets = None
 
+    TR_targets_pos = None
+    TS_targets_pos = None
+    TR_targets_rot = None
+    TS_targets_rot = None
+
     add_time = False
 
     def __init__(self, filename="", time=False):
@@ -21,7 +26,7 @@ class DAO:
     def read(self):
         
         with open("data/"+self.filename, "r") as data:
-            laser_db = pd.read_csv(data, delimiter=";").copy()
+            laser_db = pd.read_csv(data, delimiter=";")
 
         fill_value = 20
 
@@ -38,11 +43,11 @@ class DAO:
                 if i[0] == inst:
                     if i[3] == np.inf:
                         laser_inst["range{}".format(laser_id)]=fill_value
-                        laser_inst["angle{}".format(laser_id)]=i[2]
+                        #laser_inst["angle{}".format(laser_id)]=i[2]
                         #laser_inst[i[2]]=fill_value
                     else:
                         laser_inst["range{}".format(laser_id)]=i[3]
-                        laser_inst["angle{}".format(laser_id)]=i[2]
+                        #laser_inst["angle{}".format(laser_id)]=i[2]
                         #laser_inst[i[2]]=i[3]                
                 else:
                     if self.add_time:
@@ -59,7 +64,7 @@ class DAO:
             if new:
                 target_inst["pos_x"] = i[4]
                 target_inst["pos_y"] = i[5]
-                target_inst["pos_yaw"] = i[6]
+                #target_inst["pos_yaw"] = i[6]
                 target_inst.name= inst
                 target_list=pd.concat([target_list,target_inst],axis=1)
 
@@ -67,11 +72,11 @@ class DAO:
 
                 if i[3] == np.inf:
                     laser_inst["range{}".format(laser_id)]=fill_value
-                    laser_inst["angle{}".format(laser_id)]=i[2]
+                    #laser_inst["angle{}".format(laser_id)]=i[2]
                     #laser_inst[i[2]]=fill_value
                 else:
                     laser_inst["range{}".format(laser_id)]=i[3]
-                    laser_inst["angle{}".format(laser_id)]=i[2]
+                    #laser_inst["angle{}".format(laser_id)]=i[2]
                     #laser_inst[i[2]]=i[3]   
             
                 new = False

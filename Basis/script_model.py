@@ -24,7 +24,7 @@ if gpus:
 
 
 model= m.NN_Model()
-model.get_data("laser_log/laser_log2203.csv")
+model.get_data("laser_log/datasetwall.csv")
 
 beta=float(sys.argv[1])
 drop=float(sys.argv[2])

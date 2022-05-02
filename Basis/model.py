@@ -92,15 +92,15 @@ class NN_Model:
 
         self.model_cnn = models.Model(inputs, [pos_result,rot_result])
 
-    def get_data(self, filename):
+    def get_data(self, filename, unidir=False):
         self.data = DAO(filename)
         self.data.read()
-        self.data.divide_data(0.25)
-        
+        self.data.divide_data()
+
         self.data_tensor=DAO()
 
-        self.data_tensor.TR_features=tf.reshape(self.data.TR_features,[-1,720,1,1])
-        self.data_tensor.TS_features=tf.reshape(self.data.TS_features,[-1,720,1,1])
+        self.data_tensor.TR_features = tf.reshape(self.data.TR_features,[-1,720,1,1])
+        self.data_tensor.TS_features = tf.reshape(self.data.TS_features,[-1,720,1,1])
         self.data_tensor.TR_targets = tf.reshape(self.data.TR_targets,[-1,3])
         self.data_tensor.TS_targets = tf.reshape(self.data.TS_targets,[-1,3])
         
@@ -114,35 +114,76 @@ class NN_Model:
             self.data_tensor.TR_targets_rot = tf.gather(self.data_tensor.TR_targets,[2],axis=1)
             self.data_tensor.TS_targets_rot = tf.gather(self.data_tensor.TS_targets,[2],axis=1)
 
-    def model_compile(self, optimizer, loss, metrics):
+        if unidir:
+            self.data.uniform_rotation(self.data.laser_db)
+
+            self.data_tensor.TR_features_unidir = tf.reshape(self.data.TR_features_unidir,[-1,720,1,1])
+            self.data_tensor.TS_features_unidir = tf.reshape(self.data.TS_features_unidir,[-1,720,1,1])        
+            self.data_tensor.TR_targets_unidir = tf.reshape(self.data.TR_targets_unidir,[-1,3])
+            self.data_tensor.TS_targets_unidir = tf.reshape(self.data.TS_targets_unidir,[-1,3])
+
+            if self.num_model == 1:
+                self.data_tensor.TR_targets_unidir = tf.gather(self.data_tensor.TR_targets_unidir,[0,1],axis=1)
+                self.data_tensor.TS_targets_unidir = tf.gather(self.data_tensor.TS_targets_unidir,[0,1],axis=1)
+
+            if self.num_model == 2:
+                self.data_tensor.TR_targets_unidir_pos = tf.gather(self.data_tensor.TR_targets_unidir,[0,1],axis=1)
+                self.data_tensor.TS_targets_unidir_pos = tf.gather(self.data_tensor.TS_targets_unidir,[0,1],axis=1)
+                self.data_tensor.TR_targets_unidir_rot = tf.gather(self.data_tensor.TR_targets_unidir,[2],axis=1)
+                self.data_tensor.TS_targets_unidir_rot = tf.gather(self.data_tensor.TS_targets_unidir,[2],axis=1)
+
+
+    def model_compile(self, optimizer, loss, metrics=None):
         self.model_cnn.compile(optimizer=optimizer,
             loss=loss,
             metrics=metrics)
     
-    def model_run(self, epochs, batch_size=32, verbose=0):
+    def model_run(self, epochs, batch_size=32, verbose=0, unidir = False):
+        
         if self.num_model == 1:
-            return self.model_cnn.fit(self.data_tensor.TR_features, 
-                self.data_tensor.TR_targets,
-                epochs=epochs, 
-                validation_data=(self.data_tensor.TS_features, self.data_tensor.TS_targets),
-                verbose=verbose,
-                batch_size=batch_size
-                )
+            if unidir:
+                return self.model_cnn.fit(self.data_tensor.TR_features_unidir, 
+                    self.data_tensor.TR_targets_unidir,
+                    epochs=epochs, 
+                    validation_data=(self.data_tensor.TS_features_unidir, self.data_tensor.TS_targets_unidir),
+                    verbose=verbose,
+                    batch_size=batch_size
+                    )
+            else:
+                return self.model_cnn.fit(self.data_tensor.TR_features, 
+                    self.data_tensor.TR_targets,
+                    epochs=epochs, 
+                    validation_data=(self.data_tensor.TS_features, self.data_tensor.TS_targets),
+                    verbose=verbose,
+                    batch_size=batch_size
+                    )
         if self.num_model == 2:
-            return self.model_cnn.fit(self.data_tensor.TR_features, 
-                [self.data_tensor.TR_targets_pos,self.data_tensor.TR_targets_rot], 
-                epochs=epochs, 
-                batch_size=batch_size,
-                verbose=verbose,
-                validation_data=(self.data_tensor.TS_features, [self.data_tensor.TS_targets_pos,self.data_tensor.TS_targets_rot])
-                )
+            if unidir:
+                return self.model_cnn.fit(self.data_tensor.TR_features_unidir, 
+                    [self.data_tensor.TR_targets_unidir_pos,self.data_tensor.TR_targets_unidir_rot], 
+                    epochs=epochs, 
+                    batch_size=batch_size,
+                    verbose=verbose,
+                    validation_data=(self.data_tensor.TS_features, [self.data_tensor.TS_targets_unidir_pos,self.data_tensor.TS_targets_unidir_rot])
+                    )
+            else:
+                return self.model_cnn.fit(self.data_tensor.TR_features, 
+                    [self.data_tensor.TR_targets_pos,self.data_tensor.TR_targets_rot], 
+                    epochs=epochs, 
+                    batch_size=batch_size,
+                    verbose=verbose,
+                    validation_data=(self.data_tensor.TS_features, [self.data_tensor.TS_targets_pos,self.data_tensor.TS_targets_rot])
+                    )
         else: 
             return None
 
-    def get_error(self, verbose=0):
+    def get_error(self, verbose=0, unidir=False):
         
         if self.num_model == 1:
-            result = self.model_cnn.predict(self.data_tensor.TS_features)
+            if unidir:
+                result = self.model_cnn.predict(self.data_tensor.TS_features_unidir)
+            else:
+                result = self.model_cnn.predict(self.data_tensor.TS_features)
 
             pos_test = result[:,0:2]
             pos_real = np.array([self.data.TS_targets["pos_x"].to_list(),self.data.TS_targets["pos_y"].to_list()]).T
@@ -150,8 +191,11 @@ class NN_Model:
             pos_mae = mean_absolute_error(pos_real,pos_test)
 
         if self.num_model == 2:
-            result = self.model_cnn.predict(self.data_tensor.TS_features)
-
+            if unidir:
+                result = self.model_cnn.predict(self.data_tensor.TS_features_unidir)
+            else:
+                result = self.model_cnn.predict(self.data_tensor.TS_features)
+                
             pos_test = result[0]
             pos_real = np.array([self.data.TS_targets["pos_x"].to_list(),self.data.TS_targets["pos_y"].to_list()]).T
             pos_mse = mean_squared_error(pos_real,pos_test)
@@ -186,6 +230,6 @@ class NN_Model:
     
     def pos_loss_2(self,y_true, y_pred):
         pos_loss = losses.MeanSquaredError()(y_true[0], y_pred[0])
-        rot_loss = losses.MeanAbsoluteError()(y_true[1], y_pred[1])
+        rot_loss = tf.multiply(losses.MeanAbsoluteError()(y_true[1], y_pred[1]), self.beta_loss)
 
         return layers.Add()([pos_loss, rot_loss])

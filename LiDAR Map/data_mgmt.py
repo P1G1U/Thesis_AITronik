@@ -55,7 +55,11 @@ class DAO:
         laser_inst=pd.Series(dtype="float32")
         target_inst=pd.Series(dtype="float32")
 
+        if len(db.values) > (3500*720):
+            db = db.truncate(before=0, after=(3500*720))
+
         for i in db.values:
+
             if not new:
                 if i[0] == inst:
                     if i[3] == np.inf:

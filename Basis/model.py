@@ -1,3 +1,5 @@
+"""Definition of the class model that contain all the method usefull to create and manage the model"""
+
 import tensorflow as tf
 from tensorflow.keras import layers, models, losses
 from keras import backend
@@ -15,7 +17,8 @@ class NN_Model:
 
     def __init__(self):
         pass
-
+    
+    """model_define_1: Definition of the model with the keras.Sequential API"""
     def model_define_1(self, drop_rate):
 
         self.num_model = 1
@@ -53,6 +56,7 @@ class NN_Model:
 
         self.model_cnn = model   
 
+    """model_define_2: Definition of the model with the keras.Model API"""
     def model_define_2(self, drop_rate):
         
         self.num_model = 2
@@ -92,6 +96,7 @@ class NN_Model:
 
         self.model_cnn = models.Model(inputs, [pos_result,rot_result])
 
+    """get_data: method that import and format the data with the DAO"""
     def get_data(self, filename, unidir=False):
         self.data = DAO(filename)
         self.data.read()
@@ -132,12 +137,13 @@ class NN_Model:
                 self.data_tensor.TR_targets_unidir_rot = tf.gather(self.data_tensor.TR_targets_unidir,[2],axis=1)
                 self.data_tensor.TS_targets_unidir_rot = tf.gather(self.data_tensor.TS_targets_unidir,[2],axis=1)
 
-
+    """model_compile: the compile method (needed before the train)"""
     def model_compile(self, optimizer, loss, metrics=None):
         self.model_cnn.compile(optimizer=optimizer,
             loss=loss,
             metrics=metrics)
     
+    """model_run: the method that start the train of the model"""
     def model_run(self, epochs, batch_size=32, verbose=0, unidir = False):
         
         if self.num_model == 1:
@@ -177,6 +183,7 @@ class NN_Model:
         else: 
             return None
 
+    """get_error: calculate the error on a prediction on the test data"""
     def get_error(self, verbose=0, unidir=False):
         
         if self.num_model == 1:
@@ -219,15 +226,17 @@ class NN_Model:
         else: 
             return None
 
-
+    """set_beta: modify the beta value of the loss function"""
     def set_beta(self, value):
         self.beta_loss=value
 
+    """pos_loss_1: loss function of the model 1"""
     def pos_loss_1(self,y_actual, y_pred):
         loss_value = backend.sqrt(backend.pow((y_actual[:,0]-y_pred[:,0]),2)+backend.pow((y_actual[:,1]-y_pred[:,1]),2))
         
         return loss_value
-    
+
+    """pos_loss_2: loss function of the model 2"""    
     def pos_loss_2(self,y_true, y_pred):
         pos_loss = losses.MeanSquaredError()(y_true[0], y_pred[0])
         rot_loss = tf.multiply(losses.MeanAbsoluteError()(y_true[1], y_pred[1]), self.beta_loss)

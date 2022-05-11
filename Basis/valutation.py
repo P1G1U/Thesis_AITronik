@@ -1,3 +1,5 @@
+"""this file is used to valuate on different dataset the model, the results are printed on a .csv file"""
+
 import model as m
 import numpy as np
 import os

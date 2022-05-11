@@ -1,3 +1,5 @@
+"""file used by script_gridsearch to launch the gridsearch of the models"""
+
 import model as m
 import numpy as np
 import sys

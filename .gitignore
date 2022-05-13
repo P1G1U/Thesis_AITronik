@@ -12,6 +12,12 @@ LiDAR Map/models/
 
 LiDAR Map/metrics/
 
+Half LiDAR Map/data/
+
+Half LiDAR Map/models/
+
+Half LiDAR Map/metrics/
+
 dgcnn-master/
 
 test/

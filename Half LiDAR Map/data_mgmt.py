@@ -60,8 +60,8 @@ class DAO:
         laser_inst=pd.Series(dtype="float32")
         target_inst=pd.Series(dtype="float32")
 
-        if len(db.values) > (2400*720):
-            db = db.truncate(before=0, after=(2400*720))
+        if len(db.values) > (3600*360):
+            db = db.truncate(before=0, after=(3600*360))
 
         for i in db.values:
 
@@ -131,13 +131,13 @@ class DAO:
         corr_angle = 0
 
         for i in db.values:
-            i[2] = np.around((((i[2]+i[6]) + np.pi) % (2*np.pi))-np.pi,decimals=5)
+            i[2] = np.around((((i[2]+i[6]) + np.pi/2) % (np.pi))-np.pi/2,decimals=5)
             i[6] = 0
             buffer.append(i)
-            if counter == 719:
+            if counter == 359:
                 if corr_angle != 0:
-                    for j in range(720):
-                        buffer[(j+corr_angle)%720][2]=np.radians((j-360)/2)
+                    for j in range(360):
+                        buffer[(j+corr_angle)%360][2]=np.radians((j-180))
 
                 buffer.sort(key= lambda i:i[2])
 

@@ -60,8 +60,8 @@ class DAO:
         laser_inst=pd.Series(dtype="float32")
         target_inst=pd.Series(dtype="float32")
 
-        if len(db.values) > (5250*360):
-            db = db.truncate(before=0, after=(5250*360))
+        if len(db.values) > (5200*360):
+            db = db.truncate(before=0, after=(5200*360))
 
         for i in db.values:
 

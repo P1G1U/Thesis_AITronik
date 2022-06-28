@@ -219,3 +219,152 @@ def get_fingerprint(map_img, path, rad):
                     map_grid[int_y][int_x] = 1
 
     return map_grid
+
+def get_pos_from_list_fp(list_fp):
+    
+    pos_x = np.array(list_fp)[:,1]
+    pos_y = np.array(list_fp)[:,0]
+
+    pos_x = np.average(pos_x)
+    pos_y = np.average(pos_y)
+
+    return [pos_x,pos_y]
+
+def get_conf_from_list_fp(list_fp):
+
+    center = get_pos_from_list_fp(list_fp)
+
+    error_from_center = []
+
+    for pnt in list_fp:
+        error = np.sqrt(np.power((center[0]-pnt[0]),2)+np.power((center[1]-pnt[1]),2))
+        error_from_center.append(error)
+
+    return np.std(error_from_center)
+
+def get_rot_from_slice(list_fp,tot_slice):
+
+    avarage = 0
+
+    for i in list_fp:
+        avarage = avarage + i
+
+    avarage = (avarage / len(list_fp))
+
+    avarage = corr_angle_deg(avarage, 360/tot_slice)
+
+    avarage = (avarage * (360/tot_slice))+(180/tot_slice) -180
+
+    return avarage
+
+def get_conf_from_slice(list_fp,tot_slice):
+
+    center = get_rot_from_slice(list_fp,tot_slice)
+
+    error_from_center = []
+
+    for pnt in list_fp:
+
+        error = ((pnt * (360/tot_slice))+(180/tot_slice) -center) -180
+
+        error_from_center.append(error)
+
+    return np.std(error_from_center)
+
+def list_from_fingerprint(map_fingerprint, pixel_scale=0.05, mask=False):
+    
+    trail_list = []
+
+    heigth = map_fingerprint.shape[0]
+    width = map_fingerprint.shape[1]
+
+    if mask:
+        for i in range(heigth):
+            if map_fingerprint[i].any():
+                for j in range(width):
+                    if map_fingerprint[i][j] == 1:
+                        trail_list.append([i*pixel_scale,j*pixel_scale])
+    
+    else: 
+        for i in range(heigth):
+            if tf.argmax(map_fingerprint[i],axis=-1).numpy().any():
+                for j in range(width):
+                    if tf.argmax(map_fingerprint[i][j]).numpy() == 1:
+                        trail_list.append([i*pixel_scale,j*pixel_scale])
+
+    return trail_list
+
+def list_from_rotation(cake):
+    list_slice = []
+
+    #up = False
+    #down = False
+
+    for i in range(len(cake)):
+        if tf.argmax(cake[i]).numpy() == 1:
+            list_slice.append(i-(len(cake)/2))
+    
+        #if i > len(cake)-3:
+        #    down = True
+        #if i<2:
+        #    up = True
+
+    #if up and down:
+        #for i in range(len(list_slice)):
+        #    if list_slice[i] < 10:
+        #        list_slice[i] += len(cake)
+
+    break_array = np.zeros(len(list_slice))
+
+    if len(list_slice) != 0:
+
+        while max(list_slice)-min(list_slice) > len(cake)/2:
+            if break_array[np.argmin(list_slice)] == 1:
+                break
+            break_array[np.argmin(list_slice)] = 1
+            list_slice[np.argmin(list_slice)] += len(cake)
+        
+
+    return list_slice
+
+def get_fingerprint(map_img, path, rad, pixel_scale=0.05):
+    
+    map_grid = np.zeros(map_img.shape)
+
+    for pnt in path:
+
+        coord_x = pnt[0] / pixel_scale
+        coord_y = pnt[1] / pixel_scale
+
+        for r in range(rad):
+            for i in range(360):
+                x=int(np.cos(np.radians(i))*r)
+                y=int(np.sin(np.radians(i))*r)
+
+                int_x = int(coord_x+x)
+                int_y = int(coord_y+y)
+
+                if int_x >= 0 and int_x < map_grid.shape[1] and int_y >= 0 and int_y < map_grid.shape[0] and map_grid[int_y][int_x]==0:
+                    map_grid[int_y][int_x] = 1
+
+    return map_grid
+
+def corr_angle_rad(rad_angle):
+    
+    while rad_angle < (-np.pi/2) or rad_angle > (np.pi/2):
+        if rad_angle < (-np.pi/2):
+            rad_angle += np.pi
+        else:
+            rad_angle -= np.pi
+
+    return rad_angle
+
+def corr_angle_deg(deg_angle,disc=1):
+    
+    while deg_angle < (-180/disc) or deg_angle > (180/disc):
+        if deg_angle < (-180/disc):
+            deg_angle += 360/disc
+        else:
+            deg_angle -= 360/disc
+
+    return deg_angle

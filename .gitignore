@@ -20,6 +20,14 @@ Half LiDAR Map/metrics/
 
 Half LiDAR Map/img/
 
+Hierarchical LiDAR/data/
+
+Hierarchical LiDAR/models/
+
+Hierarchical LiDAR/metrics/
+
+Hierarchical LiDAR/img/
+
 dgcnn-master/
 
 test/

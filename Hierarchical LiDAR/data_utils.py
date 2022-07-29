@@ -1,3 +1,4 @@
+from random import randint
 from skimage import io
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -5,6 +6,7 @@ import numpy as np
 import tensorflow as tf
 from matplotlib import gridspec
 from matplotlib.patches import Wedge
+from skimage.transform import rescale
 
 def uniform_rotation(db):
     unidir_map = []
@@ -30,12 +32,12 @@ def uniform_rotation(db):
 
     return unidir_map
 
-def pnt_on_grid(map_img, pnt, rad=1, map_scale=0.05):
+def pnt_on_grid(map_img, pnt, rad=1, map_scale=0.05, x_0=0, y_0=0):
     #rad = 1 esatta
     map_grid = np.zeros(map_img.shape)
 
-    coord_x = pnt[0] / map_scale
-    coord_y = pnt[1] / map_scale
+    coord_x = (pnt[0] - x_0) / map_scale
+    coord_y = (pnt[1] - y_0) / map_scale
 
     px_mod = 0
 
@@ -183,21 +185,6 @@ def draw_circle(fig, ax, array_rot):
    ax.set_ylim(-5, 5)
    ax.axis("off")
 
-
-def list_from_fingerprint(map_fingerprint):
-    
-    trail_list = []
-
-    heigth = map_fingerprint.shape[0]
-    width = map_fingerprint.shape[1]
-
-    for i in range(heigth):
-        for j in range(width):
-            if map_fingerprint[i][j] == 1:
-                trail_list.append([j*0.05,i*0.05])
-    
-    return trail_list
-
 def get_fingerprint(map_img, path, rad):
     
     map_grid = np.zeros(map_img.shape)
@@ -252,8 +239,6 @@ def get_rot_from_slice(list_fp,tot_slice):
     avarage = (avarage / len(list_fp))
 
     avarage = corr_angle_deg(avarage, 360/tot_slice)
-
-    avarage = (avarage * (360/tot_slice))+(180/tot_slice) -180
 
     return avarage
 
@@ -368,3 +353,52 @@ def corr_angle_deg(deg_angle,disc=1):
             deg_angle -= 360/disc
 
     return deg_angle
+
+def zoom_in(map_img, pos, zoomed_width, zoomed_height, scale=1):
+
+    pixel_scale = 0.1 / scale
+
+    map_img = rescale(map_img,scale)
+
+    height = map_img.shape[0]
+    width = map_img.shape[1]
+
+    tot_pixel = height * width
+
+    max_pixel =  zoomed_height * zoomed_width
+
+    if max_pixel > tot_pixel:
+        return map_img
+
+    if (pos[0]/pixel_scale) >= height or (pos[1]/pixel_scale) >= width:
+        return None
+
+    x_0 = int((pos[1]/pixel_scale) - (zoomed_width/2) + randint(-int(2*(zoomed_width/5)),int(2*(zoomed_width/5))))
+    corr_x = 0
+    
+    if x_0 + zoomed_width > width:
+        corr_x = width - (x_0 + zoomed_width) - 1
+
+    if x_0 < 0:
+        corr_x = - (x_0)
+    
+    x_0 = x_0 + corr_x
+
+    y_0 = int((pos[0]/pixel_scale) - (zoomed_height/2) + randint(-int(2*(zoomed_height/5)),int(2*(zoomed_height/5))))
+    corr_y = 0
+
+    if y_0 + zoomed_height > height:
+        corr_y = height - (y_0 + zoomed_height) - 1
+
+    if y_0 < 0:
+        corr_y = - (y_0)
+    
+    y_0 = y_0 + corr_y
+    
+    map_zoomed = np.zeros((zoomed_height,zoomed_width))
+
+    for i in range(zoomed_height):
+        for j in range(zoomed_width):
+            map_zoomed[i][j] = map_img[i+y_0][j+x_0]
+    
+    return map_zoomed, x_0, y_0

@@ -28,8 +28,16 @@ Hierarchical LiDAR/metrics/
 
 Hierarchical LiDAR/img/
 
+Test All Models/data/
+
+Test All Models/models/
+
+Test All Models/metrics/
+
 dgcnn-master/
 
 test/
 
 Test TF/
+
+Script HLM/
